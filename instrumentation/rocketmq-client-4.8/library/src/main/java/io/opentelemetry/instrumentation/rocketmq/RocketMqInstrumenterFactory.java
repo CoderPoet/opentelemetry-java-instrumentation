@@ -14,6 +14,8 @@ import io.opentelemetry.instrumentation.api.instrumenter.Instrumenter;
 import io.opentelemetry.instrumentation.api.instrumenter.InstrumenterBuilder;
 import io.opentelemetry.instrumentation.api.instrumenter.SpanKindExtractor;
 import io.opentelemetry.instrumentation.api.instrumenter.SpanLinksExtractor;
+import io.opentelemetry.instrumentation.api.instrumenter.messaging.MessagingConsumerMetrics;
+import io.opentelemetry.instrumentation.api.instrumenter.messaging.MessagingProducerMetrics;
 import org.apache.rocketmq.client.hook.SendMessageContext;
 import org.apache.rocketmq.common.message.MessageExt;
 
@@ -41,7 +43,8 @@ class RocketMqInstrumenterFactory {
     InstrumenterBuilder<SendMessageContext, Void> instrumenterBuilder =
         Instrumenter.<SendMessageContext, Void>builder(
                 openTelemetry, INSTRUMENTATION_NAME, RocketMqInstrumenterFactory::spanNameOnProduce)
-            .addAttributesExtractor(producerAttributesExtractor);
+            .addAttributesExtractor(producerAttributesExtractor)
+            .addRequestMetrics(MessagingProducerMetrics.get());
     if (captureExperimentalSpanAttributes) {
       instrumenterBuilder.addAttributesExtractor(experimentalProducerAttributesExtractor);
     }
@@ -62,7 +65,8 @@ class RocketMqInstrumenterFactory {
         Instrumenter.<Void, Void>builder(
                 openTelemetry, INSTRUMENTATION_NAME, RocketMqInstrumenterFactory::spanNameOnReceive)
             .addAttributesExtractor(constant(MESSAGING_SYSTEM, "rocketmq"))
-            .addAttributesExtractor(constant(MESSAGING_OPERATION, "receive"));
+            .addAttributesExtractor(constant(MESSAGING_OPERATION, "receive"))
+            .addRequestMetrics(MessagingConsumerMetrics.get());
 
     return new RocketMqConsumerInstrumenter(
         createProcessInstrumenter(
@@ -84,7 +88,9 @@ class RocketMqInstrumenterFactory {
 
     builder.addAttributesExtractor(consumerAttributesExtractor);
     if (captureExperimentalSpanAttributes) {
-      builder.addAttributesExtractor(experimentalConsumerAttributesExtractor);
+      builder
+          .addAttributesExtractor(experimentalConsumerAttributesExtractor)
+          .addRequestMetrics(MessagingConsumerMetrics.get());
     }
 
     if (!propagationEnabled) {
