@@ -88,6 +88,7 @@ public final class KafkaInstrumenterFactory {
             buildMessagingAttributesExtractor(getter, operation, capturedHeaders))
         .addAttributesExtractors(extractors)
         .addAttributesExtractor(new KafkaProducerAdditionalAttributesExtractor())
+        .addRequestMetrics(MessagingProducerMetrics.get())
         .setErrorCauseExtractor(errorCauseExtractor)
         .buildInstrumenter(SpanKindExtractor.alwaysProducer());
   }
@@ -102,6 +103,7 @@ public final class KafkaInstrumenterFactory {
             MessagingSpanNameExtractor.create(getter, operation))
         .addAttributesExtractor(
             buildMessagingAttributesExtractor(getter, operation, capturedHeaders))
+        .addRequestMetrics(MessagingConsumerMetrics.get())
         .setErrorCauseExtractor(errorCauseExtractor)
         .setEnabled(messagingReceiveInstrumentationEnabled)
         .buildInstrumenter(SpanKindExtractor.alwaysConsumer());
@@ -126,6 +128,7 @@ public final class KafkaInstrumenterFactory {
                 buildMessagingAttributesExtractor(getter, operation, capturedHeaders))
             .addAttributesExtractor(new KafkaConsumerAdditionalAttributesExtractor())
             .addAttributesExtractors(extractors)
+            .addRequestMetrics(MessagingConsumerMetrics.get())
             .setErrorCauseExtractor(errorCauseExtractor);
     if (captureExperimentalSpanAttributes) {
       builder.addAttributesExtractor(new KafkaConsumerExperimentalAttributesExtractor());
