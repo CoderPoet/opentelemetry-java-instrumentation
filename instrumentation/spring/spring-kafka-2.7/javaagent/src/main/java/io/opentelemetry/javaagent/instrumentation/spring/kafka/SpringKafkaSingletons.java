@@ -9,6 +9,7 @@ import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.instrumentation.api.instrumenter.Instrumenter;
 import io.opentelemetry.instrumentation.api.instrumenter.SpanKindExtractor;
 import io.opentelemetry.instrumentation.api.instrumenter.SpanNameExtractor;
+import io.opentelemetry.instrumentation.api.instrumenter.messaging.MessagingConsumerMetrics;
 import io.opentelemetry.instrumentation.api.instrumenter.messaging.MessagingSpanNameExtractor;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -32,6 +33,7 @@ public final class SpringKafkaSingletons {
         .addSpanLinksExtractor(
             new KafkaBatchProcessSpanLinksExtractor(GlobalOpenTelemetry.getPropagators()))
         .setErrorCauseExtractor(new KafkaBatchErrorCauseExtractor())
+        .addRequestMetrics(MessagingConsumerMetrics.get())
         .newInstrumenter(SpanKindExtractor.alwaysConsumer());
   }
 
