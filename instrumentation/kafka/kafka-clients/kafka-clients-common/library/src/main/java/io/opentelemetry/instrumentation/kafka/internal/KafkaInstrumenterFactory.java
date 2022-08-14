@@ -16,6 +16,8 @@ import io.opentelemetry.instrumentation.api.instrumenter.SpanKindExtractor;
 import io.opentelemetry.instrumentation.api.instrumenter.SpanLinksExtractor;
 import io.opentelemetry.instrumentation.api.instrumenter.messaging.MessageOperation;
 import io.opentelemetry.instrumentation.api.instrumenter.messaging.MessagingAttributesExtractor;
+import io.opentelemetry.instrumentation.api.instrumenter.messaging.MessagingConsumerMetrics;
+import io.opentelemetry.instrumentation.api.instrumenter.messaging.MessagingProducerMetrics;
 import io.opentelemetry.instrumentation.api.instrumenter.messaging.MessagingSpanNameExtractor;
 import java.util.Collections;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -48,6 +50,7 @@ public final class KafkaInstrumenterFactory {
         .addAttributesExtractor(MessagingAttributesExtractor.create(getter, operation))
         .addAttributesExtractors(extractors)
         .addAttributesExtractor(new KafkaProducerAdditionalAttributesExtractor())
+            .addRequestMetrics(MessagingProducerMetrics.get())
         .newInstrumenter(SpanKindExtractor.alwaysProducer());
   }
 
@@ -73,6 +76,7 @@ public final class KafkaInstrumenterFactory {
         .addAttributesExtractors(extractors)
         .setTimeExtractor(new KafkaConsumerTimeExtractor())
         .setEnabled(ExperimentalConfig.get().messagingReceiveInstrumentationEnabled())
+            .addRequestMetrics(MessagingConsumerMetrics.get())
         .newInstrumenter(SpanKindExtractor.alwaysConsumer());
   }
 
@@ -122,7 +126,8 @@ public final class KafkaInstrumenterFactory {
             .addAttributesExtractor(MessagingAttributesExtractor.create(getter, operation))
             .addAttributesExtractor(new KafkaConsumerAdditionalAttributesExtractor())
             .addAttributesExtractors(extractors)
-            .setErrorCauseExtractor(errorCauseExtractor);
+            .setErrorCauseExtractor(errorCauseExtractor)
+                .addRequestMetrics(MessagingConsumerMetrics.get());;
     if (KafkaConsumerExperimentalAttributesExtractor.isEnabled()) {
       builder.addAttributesExtractor(new KafkaConsumerExperimentalAttributesExtractor());
     }

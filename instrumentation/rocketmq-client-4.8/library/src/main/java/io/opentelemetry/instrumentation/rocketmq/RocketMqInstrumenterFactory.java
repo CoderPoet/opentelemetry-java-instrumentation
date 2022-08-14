@@ -16,6 +16,8 @@ import io.opentelemetry.instrumentation.api.instrumenter.SpanKindExtractor;
 import io.opentelemetry.instrumentation.api.instrumenter.SpanLinksExtractor;
 import io.opentelemetry.instrumentation.api.instrumenter.messaging.MessageOperation;
 import io.opentelemetry.instrumentation.api.instrumenter.messaging.MessagingAttributesExtractor;
+import io.opentelemetry.instrumentation.api.instrumenter.messaging.MessagingConsumerMetrics;
+import io.opentelemetry.instrumentation.api.instrumenter.messaging.MessagingProducerMetrics;
 import io.opentelemetry.instrumentation.api.instrumenter.messaging.MessagingSpanNameExtractor;
 import org.apache.rocketmq.client.hook.SendMessageContext;
 import org.apache.rocketmq.common.message.MessageExt;
@@ -37,7 +39,8 @@ class RocketMqInstrumenterFactory {
                 openTelemetry,
                 INSTRUMENTATION_NAME,
                 MessagingSpanNameExtractor.create(getter, operation))
-            .addAttributesExtractor(MessagingAttributesExtractor.create(getter, operation));
+            .addAttributesExtractor(MessagingAttributesExtractor.create(getter, operation))
+                .addRequestMetrics(MessagingProducerMetrics.get());
     if (captureExperimentalSpanAttributes) {
       instrumenterBuilder.addAttributesExtractor(
           RocketMqProducerExperimentalAttributeExtractor.INSTANCE);
@@ -59,7 +62,8 @@ class RocketMqInstrumenterFactory {
         Instrumenter.<Void, Void>builder(
                 openTelemetry, INSTRUMENTATION_NAME, RocketMqInstrumenterFactory::spanNameOnReceive)
             .addAttributesExtractor(constant(MESSAGING_SYSTEM, "rocketmq"))
-            .addAttributesExtractor(constant(MESSAGING_OPERATION, "receive"));
+            .addAttributesExtractor(constant(MESSAGING_OPERATION, "receive"))
+                .addRequestMetrics(MessagingConsumerMetrics.get());
 
     return new RocketMqConsumerInstrumenter(
         createProcessInstrumenter(
@@ -84,7 +88,8 @@ class RocketMqInstrumenterFactory {
             INSTRUMENTATION_NAME,
             MessagingSpanNameExtractor.create(getter, operation));
 
-    builder.addAttributesExtractor(MessagingAttributesExtractor.create(getter, operation));
+    builder.addAttributesExtractor(MessagingAttributesExtractor.create(getter, operation))
+            .addRequestMetrics(MessagingConsumerMetrics.get());
     if (captureExperimentalSpanAttributes) {
       builder.addAttributesExtractor(RocketMqConsumerExperimentalAttributeExtractor.INSTANCE);
     }
