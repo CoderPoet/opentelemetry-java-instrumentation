@@ -6,6 +6,7 @@
 package io.opentelemetry.instrumentation.spring.web;
 
 import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.instrumentation.api.instrumenter.AttributesExtractor;
 import io.opentelemetry.instrumentation.api.instrumenter.Instrumenter;
 import io.opentelemetry.instrumentation.api.instrumenter.http.HttpClientAttributesExtractor;
@@ -16,6 +17,7 @@ import io.opentelemetry.instrumentation.api.instrumenter.http.HttpSpanStatusExtr
 import io.opentelemetry.instrumentation.api.instrumenter.net.NetClientAttributesExtractor;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
 
@@ -24,14 +26,18 @@ public final class SpringWebTelemetryBuilder {
   private static final String INSTRUMENTATION_NAME = "io.opentelemetry.spring-web-3.1";
 
   private final OpenTelemetry openTelemetry;
+  
+  private final Attributes resourceAttributes;
+  
   private final List<AttributesExtractor<HttpRequest, ClientHttpResponse>> additionalExtractors =
       new ArrayList<>();
   private final HttpClientAttributesExtractorBuilder<HttpRequest, ClientHttpResponse>
       httpAttributesExtractorBuilder =
           HttpClientAttributesExtractor.builder(SpringWebHttpAttributesGetter.INSTANCE);
 
-  SpringWebTelemetryBuilder(OpenTelemetry openTelemetry) {
+  SpringWebTelemetryBuilder(OpenTelemetry openTelemetry, Attributes resourceAttributes) {
     this.openTelemetry = openTelemetry;
+    this.resourceAttributes = resourceAttributes;
   }
 
   /**
@@ -71,7 +77,7 @@ public final class SpringWebTelemetryBuilder {
   public SpringWebTelemetry build() {
     SpringWebHttpAttributesGetter httpAttributeGetter = SpringWebHttpAttributesGetter.INSTANCE;
     SpringWebNetAttributesGetter netAttributesGetter = new SpringWebNetAttributesGetter();
-
+    
     Instrumenter<HttpRequest, ClientHttpResponse> instrumenter =
         Instrumenter.<HttpRequest, ClientHttpResponse>builder(
                 openTelemetry,
@@ -84,6 +90,6 @@ public final class SpringWebTelemetryBuilder {
             .addOperationMetrics(HttpClientMetrics.get())
             .buildClientInstrumenter(HttpRequestSetter.INSTANCE);
 
-    return new SpringWebTelemetry(instrumenter);
+    return new SpringWebTelemetry(instrumenter, resourceAttributes);
   }
 }

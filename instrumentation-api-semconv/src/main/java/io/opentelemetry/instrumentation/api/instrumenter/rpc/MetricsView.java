@@ -31,6 +31,7 @@ final class MetricsView {
     view.add(SemanticAttributes.RPC_SERVICE);
     view.add(SemanticAttributes.RPC_METHOD);
     view.add(SemanticAttributes.RPC_GRPC_STATUS_CODE);
+    view.add(SemanticAttributes.PEER_SERVICE);
     return view;
   }
 
