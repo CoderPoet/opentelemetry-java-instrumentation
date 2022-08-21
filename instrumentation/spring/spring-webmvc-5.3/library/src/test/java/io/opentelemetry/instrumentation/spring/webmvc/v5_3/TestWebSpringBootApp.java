@@ -17,6 +17,7 @@ import static io.opentelemetry.instrumentation.testing.junit.http.ServerEndpoint
 import static java.util.Collections.singletonList;
 
 import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.instrumentation.api.instrumenter.peer.PeerAttributesExtractor;
 import io.opentelemetry.instrumentation.testing.junit.http.AbstractHttpServerTest;
 import java.util.Properties;
 import javax.servlet.Filter;
@@ -50,7 +51,9 @@ class TestWebSpringBootApp {
 
   @Bean
   Filter telemetryFilter() {
+    SpringWebMvcPeerAttributesGetter peerAttributesGetter = new SpringWebMvcPeerAttributesGetter();
     return SpringWebMvcTelemetry.builder(GlobalOpenTelemetry.get())
+            .addAttributesExtractor(PeerAttributesExtractor.create(peerAttributesGetter))
         .setCapturedRequestHeaders(singletonList(AbstractHttpServerTest.TEST_REQUEST_HEADER))
         .setCapturedResponseHeaders(singletonList(AbstractHttpServerTest.TEST_RESPONSE_HEADER))
         .build()
