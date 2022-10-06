@@ -1,3 +1,8 @@
+/*
+ * Copyright The OpenTelemetry Authors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package io.opentelemetry.instrumentation.api.instrumenter.operation;
 
 import io.opentelemetry.api.common.AttributeKey;
@@ -21,6 +26,8 @@ public class OperationSemanticAttributes {
   public static final class RequestProtocolValues {
     public static final String HTTP = "http";
     public static final String RPC = "rpc";
+
+    private RequestProtocolValues() {}
   }
 
   public static final class SpanKindValues {

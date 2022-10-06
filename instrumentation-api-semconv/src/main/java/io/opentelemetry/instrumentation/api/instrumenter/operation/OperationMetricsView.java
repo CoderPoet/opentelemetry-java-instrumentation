@@ -1,3 +1,8 @@
+/*
+ * Copyright The OpenTelemetry Authors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package io.opentelemetry.instrumentation.api.instrumenter.operation;
 
 import io.opentelemetry.api.common.AttributeKey;
@@ -8,9 +13,12 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.BiConsumer;
 
+@SuppressWarnings("rawtypes")
 public final class OperationMetricsView {
 
   private static final Set<AttributeKey> alwaysInclude = buildAlwaysInclude();
+
+  private static final Set<AttributeKey> clientView = buildClientView();
 
   private static Set<AttributeKey> buildAlwaysInclude() {
     Set<AttributeKey> view = new HashSet<>();
@@ -26,12 +34,11 @@ public final class OperationMetricsView {
   }
 
   private static Set<AttributeKey> buildClientView() {
-    Set<AttributeKey> view = new HashSet<>(alwaysInclude);
-    return view;
+    return new HashSet<>(alwaysInclude);
   }
 
   public static Attributes applyClientView(Attributes startAttributes, Attributes endAttributes) {
-    return applyView(alwaysInclude, startAttributes, endAttributes);
+    return applyView(clientView, startAttributes, endAttributes);
   }
 
   public static Attributes applyServerView(Attributes startAttributes, Attributes endAttributes) {

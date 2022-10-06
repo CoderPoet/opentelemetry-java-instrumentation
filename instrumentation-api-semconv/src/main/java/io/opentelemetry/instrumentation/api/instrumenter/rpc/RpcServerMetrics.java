@@ -92,7 +92,7 @@ public final class RpcServerMetrics implements OperationListener {
 
     // operation metrics
     Attributes operationAttributes =
-        OperationMetricsView.applyClientView(state.startAttributes(), endAttributes);
+        OperationMetricsView.applyServerView(state.startAttributes(), endAttributes);
     requestsTotal.add(1, operationAttributes, context);
     requestDuration.record(durationTime, operationAttributes, context);
   }

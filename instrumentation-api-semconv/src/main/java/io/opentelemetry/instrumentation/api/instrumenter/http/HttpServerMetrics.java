@@ -128,7 +128,7 @@ public final class HttpServerMetrics implements OperationListener {
 
     // operation metrics
     Attributes operationAttributes =
-        OperationMetricsView.applyClientView(state.startAttributes(), endAttributes);
+        OperationMetricsView.applyServerView(state.startAttributes(), endAttributes);
     requestDuration.record(durationTime, operationAttributes, context);
     requestsTotal.add(1, operationAttributes, context);
 
