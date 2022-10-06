@@ -5,20 +5,22 @@
 
 package io.opentelemetry.instrumentation.api.instrumenter.http;
 
+import io.opentelemetry.api.common.AttributesBuilder;
+import io.opentelemetry.context.Context;
+import io.opentelemetry.instrumentation.api.instrumenter.operation.OperationSemanticAttributes;
+import io.opentelemetry.instrumentation.api.internal.SpanKey;
+import io.opentelemetry.instrumentation.api.internal.SpanKeyProvider;
+import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
+
+import javax.annotation.Nullable;
+import java.util.List;
+import java.util.function.Function;
+
 import static io.opentelemetry.instrumentation.api.instrumenter.http.ForwardedHeaderParser.extractClientIpFromForwardedForHeader;
 import static io.opentelemetry.instrumentation.api.instrumenter.http.ForwardedHeaderParser.extractClientIpFromForwardedHeader;
 import static io.opentelemetry.instrumentation.api.instrumenter.http.ForwardedHeaderParser.extractProtoFromForwardedHeader;
 import static io.opentelemetry.instrumentation.api.instrumenter.http.ForwardedHeaderParser.extractProtoFromForwardedProtoHeader;
 import static io.opentelemetry.instrumentation.api.internal.AttributesExtractorUtil.internalSet;
-
-import io.opentelemetry.api.common.AttributesBuilder;
-import io.opentelemetry.context.Context;
-import io.opentelemetry.instrumentation.api.internal.SpanKey;
-import io.opentelemetry.instrumentation.api.internal.SpanKeyProvider;
-import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
-import java.util.List;
-import java.util.function.Function;
-import javax.annotation.Nullable;
 
 /**
  * Extractor of <a
@@ -81,6 +83,21 @@ public final class HttpServerAttributesExtractor<REQUEST, RESPONSE>
     internalSet(attributes, SemanticAttributes.HTTP_ROUTE, getter.route(request));
     internalSet(attributes, SemanticAttributes.HTTP_SERVER_NAME, getter.serverName(request));
     internalSet(attributes, SemanticAttributes.HTTP_CLIENT_IP, clientIp(request));
+
+    String operation = getter.route(request);
+    //    if (operation == null) {
+    //      // This can cause high cardinality issues with metrics
+    //      operation = getter.target(request);
+    //    }
+    internalSet(attributes, OperationSemanticAttributes.OPERATION, operation);
+    internalSet(
+        attributes,
+        OperationSemanticAttributes.SPAN_KIND,
+        OperationSemanticAttributes.SpanKindValues.SERVER);
+    internalSet(
+        attributes,
+        OperationSemanticAttributes.REQUEST_PROTOCOL,
+        OperationSemanticAttributes.RequestProtocolValues.HTTP);
   }
 
   @Override
@@ -93,6 +110,8 @@ public final class HttpServerAttributesExtractor<REQUEST, RESPONSE>
 
     super.onEnd(attributes, context, request, response, error);
     internalSet(attributes, SemanticAttributes.HTTP_ROUTE, httpRouteHolderGetter.apply(context));
+    internalSet(
+        attributes, OperationSemanticAttributes.OPERATION, httpRouteHolderGetter.apply(context));
   }
 
   @Nullable

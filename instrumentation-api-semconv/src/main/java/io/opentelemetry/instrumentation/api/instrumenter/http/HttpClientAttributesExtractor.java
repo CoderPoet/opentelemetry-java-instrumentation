@@ -5,15 +5,17 @@
 
 package io.opentelemetry.instrumentation.api.instrumenter.http;
 
-import static io.opentelemetry.instrumentation.api.internal.AttributesExtractorUtil.internalSet;
-
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.context.Context;
+import io.opentelemetry.instrumentation.api.instrumenter.operation.OperationSemanticAttributes;
 import io.opentelemetry.instrumentation.api.internal.SpanKey;
 import io.opentelemetry.instrumentation.api.internal.SpanKeyProvider;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
-import java.util.List;
+
 import javax.annotation.Nullable;
+import java.util.List;
+
+import static io.opentelemetry.instrumentation.api.internal.AttributesExtractorUtil.internalSet;
 
 /**
  * Extractor of <a
@@ -55,6 +57,15 @@ public final class HttpClientAttributesExtractor<REQUEST, RESPONSE>
   public void onStart(AttributesBuilder attributes, Context parentContext, REQUEST request) {
     super.onStart(attributes, parentContext, request);
     internalSet(attributes, SemanticAttributes.HTTP_URL, getter.url(request));
+    internalSet(
+        attributes,
+        OperationSemanticAttributes.SPAN_KIND,
+        OperationSemanticAttributes.SpanKindValues.CLIENT);
+    internalSet(
+        attributes,
+        OperationSemanticAttributes.REQUEST_PROTOCOL,
+        OperationSemanticAttributes.RequestProtocolValues.HTTP);
+    // internalSet(attributes, OperationSemanticAttributes.OPERATION, getter.url(request));
   }
 
   @Override

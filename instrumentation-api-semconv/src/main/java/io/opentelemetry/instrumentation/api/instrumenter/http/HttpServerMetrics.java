@@ -5,14 +5,11 @@
 
 package io.opentelemetry.instrumentation.api.instrumenter.http;
 
-import static io.opentelemetry.instrumentation.api.instrumenter.http.TemporaryMetricsView.applyActiveRequestsView;
-import static io.opentelemetry.instrumentation.api.instrumenter.http.TemporaryMetricsView.applyServerDurationAndSizeView;
-import static java.util.logging.Level.FINE;
-
 import com.google.auto.value.AutoValue;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.DoubleHistogram;
+import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.LongHistogram;
 import io.opentelemetry.api.metrics.LongUpDownCounter;
 import io.opentelemetry.api.metrics.Meter;
@@ -20,10 +17,16 @@ import io.opentelemetry.context.Context;
 import io.opentelemetry.context.ContextKey;
 import io.opentelemetry.instrumentation.api.instrumenter.OperationListener;
 import io.opentelemetry.instrumentation.api.instrumenter.OperationMetrics;
+import io.opentelemetry.instrumentation.api.instrumenter.operation.OperationMetricsView;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
+
+import javax.annotation.Nullable;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+
+import static io.opentelemetry.instrumentation.api.instrumenter.http.TemporaryMetricsView.applyActiveRequestsView;
+import static io.opentelemetry.instrumentation.api.instrumenter.http.TemporaryMetricsView.applyServerDurationAndSizeView;
+import static java.util.logging.Level.FINE;
 
 /**
  * {@link OperationListener} which keeps track of <a
@@ -48,12 +51,24 @@ public final class HttpServerMetrics implements OperationListener {
     return HttpServerMetrics::new;
   }
 
+  private final LongCounter requestsTotal;
+  private final DoubleHistogram requestDuration;
   private final LongUpDownCounter activeRequests;
   private final DoubleHistogram duration;
   private final LongHistogram requestSize;
   private final LongHistogram responseSize;
 
   private HttpServerMetrics(Meter meter) {
+    requestsTotal =
+        meter
+            .counterBuilder("aos_requests_total")
+            .setDescription("This is a COUNTER incremented for every request handled")
+            .build();
+    requestDuration =
+        meter
+            .histogramBuilder("aos_request_duration_milliseconds")
+            .setDescription("This is a DISTRIBUTION which measures the duration of requests")
+            .build();
     activeRequests =
         meter
             .upDownCounterBuilder("http.server.active_requests")
@@ -103,10 +118,21 @@ public final class HttpServerMetrics implements OperationListener {
       return;
     }
     activeRequests.add(-1, applyActiveRequestsView(state.startAttributes()), context);
+
+    double durationTime = (endNanos - state.startTimeNanos()) / NANOS_PER_MS;
+
+    // duration
     Attributes durationAndSizeAttributes =
         applyServerDurationAndSizeView(state.startAttributes(), endAttributes);
-    duration.record(
-        (endNanos - state.startTimeNanos()) / NANOS_PER_MS, durationAndSizeAttributes, context);
+    duration.record(durationTime, durationAndSizeAttributes, context);
+
+    // operation metrics
+    Attributes operationAttributes =
+        OperationMetricsView.applyClientView(state.startAttributes(), endAttributes);
+    requestDuration.record(durationTime, operationAttributes, context);
+    requestsTotal.add(1, operationAttributes, context);
+
+    // request and response size
     Long requestLength =
         getAttribute(
             SemanticAttributes.HTTP_REQUEST_CONTENT_LENGTH, endAttributes, state.startAttributes());

@@ -8,9 +8,11 @@ package io.opentelemetry.instrumentation.api.instrumenter;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.instrumentation.api.instrumenter.net.NetClientAttributesGetter;
+import io.opentelemetry.instrumentation.api.instrumenter.operation.OperationSemanticAttributes;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
-import java.util.Map;
+
 import javax.annotation.Nullable;
+import java.util.Map;
 
 /**
  * Extractor of the {@code peer.service} span attribute, described in <a
@@ -61,6 +63,7 @@ public final class PeerServiceAttributesExtractor<REQUEST, RESPONSE>
     String peerService = mapToPeerService(peerName);
     if (peerService != null) {
       attributes.put(SemanticAttributes.PEER_SERVICE, peerService);
+      attributes.put(OperationSemanticAttributes.DESTINATION_CANONICAL_SERVICE, peerService);
     }
   }
 

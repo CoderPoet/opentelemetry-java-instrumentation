@@ -5,8 +5,15 @@
 
 package io.opentelemetry.instrumentation.api.instrumenter.rpc;
 
+import io.opentelemetry.api.common.AttributesBuilder;
+import io.opentelemetry.context.Context;
+import io.opentelemetry.instrumentation.api.instrumenter.operation.OperationSemanticAttributes;
 import io.opentelemetry.instrumentation.api.internal.SpanKey;
 import io.opentelemetry.instrumentation.api.internal.SpanKeyProvider;
+
+import javax.annotation.Nullable;
+
+import static io.opentelemetry.instrumentation.api.internal.AttributesExtractorUtil.internalSet;
 
 /**
  * Extractor of <a
@@ -27,6 +34,28 @@ public final class RpcServerAttributesExtractor<REQUEST, RESPONSE>
 
   private RpcServerAttributesExtractor(RpcAttributesGetter<REQUEST> getter) {
     super(getter);
+  }
+
+  @Override
+  public final void onStart(AttributesBuilder attributes, Context parentContext, REQUEST request) {
+    internalSet(
+        attributes,
+        OperationSemanticAttributes.SPAN_KIND,
+        OperationSemanticAttributes.SpanKindValues.SERVER);
+    internalSet(
+        attributes,
+        OperationSemanticAttributes.REQUEST_PROTOCOL,
+        OperationSemanticAttributes.RequestProtocolValues.RPC);
+  }
+
+  @Override
+  public final void onEnd(
+      AttributesBuilder attributes,
+      Context context,
+      REQUEST request,
+      @Nullable RESPONSE response,
+      @Nullable Throwable error) {
+    // No response attributes
   }
 
   /**

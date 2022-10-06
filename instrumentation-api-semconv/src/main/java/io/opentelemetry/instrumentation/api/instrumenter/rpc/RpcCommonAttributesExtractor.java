@@ -5,13 +5,15 @@
 
 package io.opentelemetry.instrumentation.api.instrumenter.rpc;
 
-import static io.opentelemetry.instrumentation.api.internal.AttributesExtractorUtil.internalSet;
-
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.instrumentation.api.instrumenter.AttributesExtractor;
+import io.opentelemetry.instrumentation.api.instrumenter.operation.OperationSemanticAttributes;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
+
 import javax.annotation.Nullable;
+
+import static io.opentelemetry.instrumentation.api.internal.AttributesExtractorUtil.internalSet;
 
 abstract class RpcCommonAttributesExtractor<REQUEST, RESPONSE>
     implements AttributesExtractor<REQUEST, RESPONSE> {
@@ -23,14 +25,15 @@ abstract class RpcCommonAttributesExtractor<REQUEST, RESPONSE>
   }
 
   @Override
-  public final void onStart(AttributesBuilder attributes, Context parentContext, REQUEST request) {
+  public void onStart(AttributesBuilder attributes, Context parentContext, REQUEST request) {
     internalSet(attributes, SemanticAttributes.RPC_SYSTEM, getter.system(request));
     internalSet(attributes, SemanticAttributes.RPC_SERVICE, getter.service(request));
     internalSet(attributes, SemanticAttributes.RPC_METHOD, getter.method(request));
+    internalSet(attributes, OperationSemanticAttributes.OPERATION, getter.method(request));
   }
 
   @Override
-  public final void onEnd(
+  public void onEnd(
       AttributesBuilder attributes,
       Context context,
       REQUEST request,

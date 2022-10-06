@@ -5,17 +5,19 @@
 
 package io.opentelemetry.instrumentation.api.instrumenter.http;
 
+import io.opentelemetry.api.common.AttributesBuilder;
+import io.opentelemetry.context.Context;
+import io.opentelemetry.instrumentation.api.instrumenter.AttributesExtractor;
+import io.opentelemetry.instrumentation.api.instrumenter.operation.OperationSemanticAttributes;
+import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
+
+import javax.annotation.Nullable;
+import java.util.List;
+
 import static io.opentelemetry.instrumentation.api.instrumenter.http.CapturedHttpHeadersUtil.lowercase;
 import static io.opentelemetry.instrumentation.api.instrumenter.http.CapturedHttpHeadersUtil.requestAttributeKey;
 import static io.opentelemetry.instrumentation.api.instrumenter.http.CapturedHttpHeadersUtil.responseAttributeKey;
 import static io.opentelemetry.instrumentation.api.internal.AttributesExtractorUtil.internalSet;
-
-import io.opentelemetry.api.common.AttributesBuilder;
-import io.opentelemetry.context.Context;
-import io.opentelemetry.instrumentation.api.instrumenter.AttributesExtractor;
-import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
-import java.util.List;
-import javax.annotation.Nullable;
 
 /**
  * Extractor of <a
@@ -65,6 +67,7 @@ abstract class HttpCommonAttributesExtractor<
       Integer statusCode = getter.statusCode(request, response, error);
       if (statusCode != null && statusCode > 0) {
         internalSet(attributes, SemanticAttributes.HTTP_STATUS_CODE, (long) statusCode);
+        internalSet(attributes, OperationSemanticAttributes.RESPONSE_CODE, (long) statusCode);
       }
 
       internalSet(
