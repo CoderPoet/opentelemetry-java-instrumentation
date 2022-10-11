@@ -40,7 +40,7 @@ public class RuntimeMetricsInstaller implements AgentListener {
     Threads.registerObservers(openTelemetry);
 
     if (config.getBoolean(
-        "otel.instrumentation.runtime-metrics.experimental-metrics.enabled", false)) {
+        "otel.instrumentation.runtime-metrics.experimental-metrics.enabled", true)) {
       GarbageCollector.registerObservers(openTelemetry);
     }
   }
