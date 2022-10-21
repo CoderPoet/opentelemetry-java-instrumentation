@@ -49,6 +49,7 @@ public final class RpcClientMetrics implements OperationListener {
     requestDuration =
         meter
             .histogramBuilder("aos_request_duration_milliseconds")
+            .setUnit("ms")
             .setDescription("This is a DISTRIBUTION which measures the duration of requests")
             .build();
 

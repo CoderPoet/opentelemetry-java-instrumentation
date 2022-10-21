@@ -10,6 +10,7 @@ import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.api.metrics.ObservableLongMeasurement;
+
 import java.lang.management.BufferPoolMXBean;
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
@@ -45,7 +46,7 @@ public final class BufferPools {
     Meter meter = openTelemetry.getMeter("io.opentelemetry.runtime-metrics");
 
     meter
-        .upDownCounterBuilder("process.runtime.jvm.buffer.usage")
+        .upDownCounterBuilder("process.runtihme.jvm.buffer.usage")
         .setDescription("Memory that the Java virtual machine is using for this buffer pool")
         .setUnit("By")
         .buildWithCallback(callback(bufferBeans, BufferPoolMXBean::getMemoryUsed));

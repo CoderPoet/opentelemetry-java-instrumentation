@@ -44,11 +44,13 @@ public final class RpcServerMetrics implements OperationListener {
     requestsTotal =
         meter
             .counterBuilder("aos_requests_total")
+            .setUnit("requests")
             .setDescription("This is a COUNTER incremented for every request handled")
             .build();
     requestDuration =
         meter
             .histogramBuilder("aos_request_duration_milliseconds")
+            .setUnit("ms")
             .setDescription("This is a DISTRIBUTION which measures the duration of requests")
             .build();
     serverDurationHistogram =
